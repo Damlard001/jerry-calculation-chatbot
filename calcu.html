@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jerry Calculation Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      padding: 20px;
+    }
+    .dark-mode {
+      background-color: #1e1e1e;
+      color: #eee;
+    }
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    #toggle-mode {
+      margin: 5px;
+      padding: 8px 16px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      background-color: #fff;
+      border-radius: 5px;
+    }
+    .display-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    #expression {
+      flex-grow: 1;
+      padding: 10px;
+      font-size: 18px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .calculator-buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .calculator-buttons button {
+      padding: 15px;
+      font-size: 18px;
+      cursor: pointer;
+      border: none;
+      background-color: #e0e0e0;
+      border-radius: 5px;
+    }
+    .chat-box {
+      background: #fff;
+      padding: 10px;
+      height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      text-align: left;
+    }
+    .chat-message {
+      margin-bottom: 6px;
+    }
+    .chat-controls button {
+      padding: 8px 12px;
+      margin: 0 5px;
+      cursor: pointer;
+      border: 1px solid #aaa;
+      border-radius: 5px;
+      background-color: #f5f5f5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Jerry Calculation Chatbot</h1>
+    <button id="toggle-mode">Toggle Dark Mode</button>
+    <div class="display-container">
+      <input type="text" id="expression" placeholder="Enter expression or equation..." />
+      <button onclick="handleInput()">=</button>
+    </div>
+    <div class="calculator-buttons">
+      <button onclick="appendToExpression('7')">7</button>
+      <button onclick="appendToExpression('8')">8</button>
+      <button onclick="appendToExpression('9')">9</button>
+      <button onclick="appendToExpression('+')">+</button>
+      <button onclick="appendToExpression('4')">4</button>
+      <button onclick="appendToExpression('5')">5</button>
+      <button onclick="appendToExpression('6')">6</button>
+      <button onclick="appendToExpression('-')">-</button>
+      <button onclick="appendToExpression('1')">1</button>
+      <button onclick="appendToExpression('2')">2</button>
+      <button onclick="appendToExpression('3')">3</button>
+      <button onclick="appendToExpression('*')">×</button>
+      <button onclick="appendToExpression('0')">0</button>
+      <button onclick="appendToExpression('.')">.</button>
+      <button onclick="clearExpression()">C</button>
+      <button onclick="appendToExpression('/')">÷</button>
+    </div>
+    <div class="chat-box" id="chat-box"></div>
+    <div class="chat-controls">
+      <button onclick="clearChat()">Clear Chat</button>
+      <button onclick="downloadChat()">Download Chat</button>
+    </div>
+  </div>
+
+  <script>
+    const expressionInput = document.getElementById("expression");
+    const chatBox = document.getElementById("chat-box");
+    const toggleModeBtn = document.getElementById("toggle-mode");
+
+    function appendToExpression(value) {
+      expressionInput.value += value;
+    }
+
+    function clearExpression() {
+      expressionInput.value = "";
+      expressionInput.classList.remove("error");
+    }
+
+    function clearChat() {
+      chatBox.innerHTML = "";
+    }
+
+    function downloadChat() {
+      const content = chatBox.textContent;
+      const blob = new Blob([content], { type: "text/plain" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "jerry_chat_history.txt";
+      link.click();
+    }
+
+    toggleModeBtn.addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+    });
+
+    function addChatMessage(message) {
+      const msg = document.createElement("div");
+      msg.className = "chat-message";
+      msg.textContent = message;
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function handleInput() {
+      const input = expressionInput.value.trim();
+      if (!input) return;
+      addChatMessage(`You: ${input}`);
+      try {
+        const { result, steps } = solveAlgebra(input);
+        let i = 0;
+        function showNextStep() {
+          if (i < steps.length) {
+            addChatMessage(`🧮 Step ${i + 1}: ${steps[i]}`);
+            i++;
+            setTimeout(showNextStep, 1000);
+          } else {
+            addChatMessage(`🎯 Jerry: ${result}`);
+          }
+        }
+        showNextStep();
+      } catch (e) {
+        addChatMessage(`Jerry: I couldn't understand or evaluate that.`);
+        expressionInput.classList.add("error");
+      }
+      expressionInput.value = "";
+    }
+
+    function solveAlgebra(expr) {
+      const steps = [];
+      let input = expr.toLowerCase()
+        .replace(/plus/g, '+')
+        .replace(/minus/g, '-')
+        .replace(/times|multiplied by/g, '*')
+        .replace(/divided by|over/g, '/')
+        .replace(/\s+/g, '')
+        .replace(/what is|calculate|find|answer to/g, '')
+        .replace(/[^0-9xX=+\-*/.^()]/g, '');
+
+      if (!input.includes('=')) {
+        const result = eval(input);
+        steps.push(`Evaluated: ${input} = ${result}`);
+        return { result, steps };
+      }
+
+      const [lhs, rhs] = input.split('=').map(s => s.replace(/\^/g, '**'));
+      const equation = lhs + ' - (' + rhs + ')';
+      const coeffs = getCoefficients(equation);
+
+      if (coeffs.a !== 0) {
+        const { a, b, c } = coeffs;
+        steps.push(`Quadratic: ${a}x² + ${b}x + ${c} = 0`);
+        const D = b * b - 4 * a * c;
+        steps.push(`Discriminant: D = ${D}`);
+        if (D < 0) return { result: "No real solution", steps };
+        const x1 = (-b + Math.sqrt(D)) / (2 * a);
+        const x2 = (-b - Math.sqrt(D)) / (2 * a);
+        steps.push(`x = (-${b} ± √${D}) / (2×${a})`);
+        return { result: D === 0 ? `x = ${x1}` : `x = ${x1}, ${x2}`, steps };
+      } else if (coeffs.b !== 0) {
+        const x = -coeffs.c / coeffs.b;
+        steps.push(`Linear: ${coeffs.b}x + ${coeffs.c} = 0`);
+        steps.push(`x = -(${coeffs.c}) / ${coeffs.b}`);
+        return { result: `x = ${x}`, steps };
+      } else {
+        return { result: coeffs.c === 0 ? 'All real numbers' : 'No solution', steps };
+      }
+    }
+
+    function getCoefficients(expr) {
+      const tokens = expr.match(/[+-]?\d*\.?\d*x\*\*2|[+-]?\d*\.?\d*x|[+-]?\d*\.?\d+/g) || [];
+      let a = 0, b = 0, c = 0;
+      tokens.forEach(term => {
+        if (term.includes('x**2')) {
+          let value = term.replace('x**2', '');
+          if (value === '' || value === '+') value = '1';
+          if (value === '-') value = '-1';
+          a += parseFloat(value);
+        } else if (term.includes('x')) {
+          let value = term.replace('x', '');
+          if (value === '' || value === '+') value = '1';
+          if (value === '-') value = '-1';
+          b += parseFloat(value);
+        } else {
+          c += parseFloat(term);
+        }
+      });
+      return { a, b, c };
+    }
+  </script>
+</body>
+</html>
