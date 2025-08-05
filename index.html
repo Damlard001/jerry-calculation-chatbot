@@ -17,7 +17,7 @@
     }
     .container {
       max-width: 400px;
-      margin: 0 auto;
+      margin: auto;
       text-align: center;
     }
     h1 {
@@ -99,16 +99,16 @@
       <button onclick="appendToExpression('1')">1</button>
       <button onclick="appendToExpression('2')">2</button>
       <button onclick="appendToExpression('3')">3</button>
-      <button onclick="appendToExpression('*')">×</button>
+      <button onclick="appendToExpression('*')">*</button>
       <button onclick="appendToExpression('0')">0</button>
       <button onclick="appendToExpression('.')">.</button>
       <button onclick="clearExpression()">C</button>
-      <button onclick="appendToExpression('/')">÷</button>
+      <button onclick="appendToExpression('/')">/</button>
     </div>
     <div class="chat-box" id="chat-box"></div>
     <div class="chat-controls">
       <button onclick="clearChat()">Clear Chat</button>
-      <button onclick="downloadChat()">Download Chat</button>
+      <button onclick="copyChat()">Copy Chat</button>
     </div>
   </div>
 
@@ -130,13 +130,13 @@
       chatBox.innerHTML = "";
     }
 
-    function downloadChat() {
+    function copyChat() {
       const content = chatBox.textContent;
-      const blob = new Blob([content], { type: "text/plain" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "jerry_chat_history.txt";
-      link.click();
+      navigator.clipboard.writeText(content).then(() => {
+        alert("✅ Chat copied to clipboard! You can now paste it anywhere.");
+      }).catch(() => {
+        alert("❌ Failed to copy. Please allow clipboard permission.");
+      });
     }
 
     toggleModeBtn.addEventListener("click", () => {
@@ -162,7 +162,7 @@
           if (i < steps.length) {
             addChatMessage(`🧮 Step ${i + 1}: ${steps[i]}`);
             i++;
-            setTimeout(showNextStep, 1000);
+            setTimeout(showNextStep, 800);
           } else {
             addChatMessage(`🎯 Jerry: ${result}`);
           }
@@ -177,6 +177,7 @@
 
     function solveAlgebra(expr) {
       const steps = [];
+
       let input = expr.toLowerCase()
         .replace(/plus/g, '+')
         .replace(/minus/g, '-')
@@ -187,9 +188,23 @@
         .replace(/[^0-9xX=+\-*/.^()]/g, '');
 
       if (!input.includes('=')) {
-        const result = eval(input);
-        steps.push(`Evaluated: ${input} = ${result}`);
-        return { result, steps };
+        try {
+          input = input.replace(/(\d)\(/g, '$1*('); // fix 2(5+3) format
+
+          const stepPattern = /\([^()]*\)/;
+          while (stepPattern.test(input)) {
+            const match = input.match(stepPattern)[0];
+            const value = eval(match);
+            steps.push(`Solved ${match} → ${value}`);
+            input = input.replace(stepPattern, value);
+          }
+
+          const result = eval(input);
+          steps.push(`Final calculation: ${input} = ${result}`);
+          return { result, steps };
+        } catch {
+          return { result: "Error evaluating expression", steps: [] };
+        }
       }
 
       const [lhs, rhs] = input.split('=').map(s => s.replace(/\^/g, '**'));
