@@ -1,191 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Jerry Chatbot</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jerry - Calculation Chatbot</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f5f5f5;
-      color: #333;
-      padding: 20px;
-    }
-    .dark-mode {
-      background-color: #1e1e1e;
-      color: #eee;
-    }
-    .container {
-      max-width: 400px;
-      margin: auto;
-      text-align: center;
-    }
-    .display-container {
+      background: #f4f4f9;
+      margin: 0;
+      padding: 0;
       display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
+      flex-direction: column;
+      height: 100vh;
     }
-    input, textarea {
-      font-size: 16px;
-    }
-    #expression {
-      flex-grow: 1;
-      padding: 10px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    .calculator-buttons {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin: 10px 0;
-    }
-    button {
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: 1px solid #aaa;
-      background-color: #e0e0e0;
-      cursor: pointer;
-    }
-    .chat-box {
-      background: #fff;
-      padding: 10px;
-      height: 200px;
+    #chatbox {
+      flex: 1;
       overflow-y: auto;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      text-align: left;
+      padding: 15px;
     }
-    .chat-message {
-      margin-bottom: 5px;
-    }
-    #chat-textarea {
-      display: none;
-      width: 100%;
-      height: 120px;
-      margin-top: 10px;
+    .user, .bot {
+      margin: 10px 0;
       padding: 10px;
-      border-radius: 5px;
-      font-size: 14px;
+      border-radius: 8px;
+      max-width: 70%;
+    }
+    .user {
+      background: #007bff;
+      color: white;
+      align-self: flex-end;
+    }
+    .bot {
+      background: #eaeaea;
+      align-self: flex-start;
+    }
+    #input-area {
+      display: flex;
+      padding: 10px;
+      background: white;
+      border-top: 1px solid #ddd;
+    }
+    #userInput {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    #sendBtn {
+      margin-left: 10px;
+      padding: 10px 15px;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Jerry Calculation Chatbot</h2>
-    <button onclick="toggleDark()">Toggle Dark Mode</button>
-
-    <div class="display-container">
-      <input type="text" id="expression" placeholder="Enter equation or expression" />
-      <button onclick="handleInput()">=</button>
-    </div>
-
-    <div class="calculator-buttons">
-      <button onclick="appendToExpression('7')">7</button>
-      <button onclick="appendToExpression('8')">8</button>
-      <button onclick="appendToExpression('9')">9</button>
-      <button onclick="appendToExpression('+')">+</button>
-      <button onclick="appendToExpression('4')">4</button>
-      <button onclick="appendToExpression('5')">5</button>
-      <button onclick="appendToExpression('6')">6</button>
-      <button onclick="appendToExpression('-')">-</button>
-      <button onclick="appendToExpression('1')">1</button>
-      <button onclick="appendToExpression('2')">2</button>
-      <button onclick="appendToExpression('3')">3</button>
-      <button onclick="appendToExpression('*')">*</button>
-      <button onclick="appendToExpression('0')">0</button>
-      <button onclick="appendToExpression('.')">.</button>
-      <button onclick="clearExpression()">C</button>
-      <button onclick="appendToExpression('/')">/</button>
-    </div>
-
-    <div class="chat-box" id="chat-box"></div>
-
-    <button onclick="clearChat()">Clear Chat</button>
-    <button onclick="viewChat()">View Chat</button>
-    <button onclick="copyChat()">Copy Chat</button>
-    <button onclick="clearMemory()">Clear Memory</button>
-
-    <textarea id="chat-textarea" readonly></textarea>
+  <div id="chatbox"></div>
+  <div id="input-area">
+    <input id="userInput" type="text" placeholder="Ask Jerry to solve...">
+    <button id="sendBtn">Send</button>
   </div>
 
   <script>
-    const expressionInput = document.getElementById("expression");
-    const chatBox = document.getElementById("chat-box");
-    const chatTextarea = document.getElementById("chat-textarea");
+    const chatbox = document.getElementById("chatbox");
+    const input = document.getElementById("userInput");
+    const sendBtn = document.getElementById("sendBtn");
 
-    let allChatMessages = [];
-
-    // Load memory
-    const saved = localStorage.getItem("jerryChat");
-    if (saved) {
-      allChatMessages = JSON.parse(saved);
-      allChatMessages.forEach(msg => {
-        const div = document.createElement("div");
-        div.className = "chat-message";
-        div.textContent = msg;
-        chatBox.appendChild(div);
-      });
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    function appendToExpression(val) {
-      expressionInput.value += val;
-    }
-
-    function clearExpression() {
-      expressionInput.value = "";
-    }
-
-    function clearChat() {
-      chatBox.innerHTML = "";
-      chatTextarea.style.display = "none";
-    }
-
-    function clearMemory() {
-      localStorage.removeItem("jerryChat");
-      allChatMessages = [];
-      chatBox.innerHTML = "";
-      chatTextarea.style.display = "none";
-      alert("🧽 Memory cleared.");
-    }
-
-    function toggleDark() {
-      document.body.classList.toggle("dark-mode");
-    }
-
-    function addChat(msg) {
-      const div = document.createElement("div");
-      div.className = "chat-message";
-      div.textContent = msg;
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      allChatMessages.push(msg);
-      localStorage.setItem("jerryChat", JSON.stringify(allChatMessages));
-    }
-
-    function viewChat() {
-      const text = allChatMessages.join(" | ");
-      chatTextarea.value = text || "No chat to show.";
-      chatTextarea.style.display = "block";
-    }
-
-    function copyChat() {
-      chatTextarea.select();
-      document.execCommand("copy");
-      alert("✅ Chat copied!");
-    }
+    sendBtn.addEventListener("click", handleInput);
+    input.addEventListener("keypress", e => {
+      if (e.key === "Enter") handleInput();
+    });
 
     function handleInput() {
-      const input = expressionInput.value.trim();
-      if (!input) return;
-      addChat("You: " + input);
-      const { result, steps } = solve(input);
-      steps.forEach((s, i) => addChat(`Step ${i + 1}: ${s}`));
-      addChat("🎯 Jerry: " + result);
-      expressionInput.value = "";
+      const text = input.value.trim();
+      if (!text) return;
+      addMessage(text, "user");
+      input.value = "";
+
+      const { result, steps } = solve(text);
+      addMessage(result, "bot");
+      if (steps.length > 0) {
+        steps.forEach(s => addMessage("👉 " + s, "bot"));
+      }
+    }
+
+    function addMessage(msg, sender) {
+      const div = document.createElement("div");
+      div.className = sender;
+      div.textContent = msg;
+      chatbox.appendChild(div);
+      chatbox.scrollTop = chatbox.scrollHeight;
     }
 
     function solve(input) {
@@ -197,27 +104,30 @@
           .replace(/times|multiplied by/g, '*')
           .replace(/divided by|over/g, '/')
           .replace(/what is|calculate|find|answer to|solve/g, '')
-          .replace(/\s+/g, '')
-          .replace(/[^0-9xX=+\-*/.^()]/g, '');
+          .replace(/\s+/g, '');
+
+        // Insert explicit multiplication e.g. 2(x+3) → 2*(x+3)
+        expr = expr.replace(/(\d)(?=\()/g, '$1*');
 
         if (!expr.includes('=')) {
-          expr = expr.replace(/(\d)\(/g, "$1*(");
-          while (/\([^()]*\)/.test(expr)) {
-            const match = expr.match(/\([^()]*\)/)[0];
-            const val = eval(match);
-            steps.push(`Solved ${match} → ${val}`);
-            expr = expr.replace(match, val);
-          }
-          const result = eval(expr);
-          steps.push(`Final: ${expr} = ${result}`);
+          // Arithmetic mode
+          let arith = expr.replace(/\^/g, '**');
+          const result = eval(arith);
+          steps.push(`Evaluated: ${arith} = ${result}`);
           return { result, steps };
         }
 
-        const [lhs, rhs] = expr.split('=').map(e => e.replace(/\^/g, '**'));
-        const equation = `${lhs} - (${rhs})`;
+        // Equation mode
+        let [lhs, rhs] = expr.split('=');
+        lhs = lhs.replace(/\^/g, '**');
+        rhs = rhs.replace(/\^/g, '**');
+
+        const equation = `(${lhs})-(${rhs})`;
+
         const coeffs = getCoefficients(equation);
 
         if (coeffs.a !== 0) {
+          // Quadratic
           const { a, b, c } = coeffs;
           steps.push(`Equation is quadratic: ${a}x² + ${b}x + ${c} = 0`);
           const D = b * b - 4 * a * c;
@@ -228,6 +138,7 @@
           steps.push(`x = (-${b} ± √${D}) / (2×${a})`);
           return { result: D === 0 ? `x = ${x1}` : `x = ${x1}, ${x2}`, steps };
         } else if (coeffs.b !== 0) {
+          // Linear
           const x = -coeffs.c / coeffs.b;
           steps.push(`Linear: ${coeffs.b}x + ${coeffs.c} = 0`);
           steps.push(`x = -(${coeffs.c}) / ${coeffs.b}`);
@@ -236,29 +147,31 @@
           return { result: coeffs.c === 0 ? "All real numbers" : "No solution", steps };
         }
 
-      } catch {
+      } catch (err) {
         return { result: "Invalid or unsupported input", steps: [] };
       }
     }
 
+    // Extract coefficients for ax² + bx + c = 0
     function getCoefficients(expr) {
-      const tokens = expr.match(/[+-]?\d*\.?\d*x\*\*2|[+-]?\d*\.?\d*x|[+-]?\d*\.?\d+/g) || [];
+      expr = expr.replace(/-/g, "+-"); 
+      const terms = expr.split("+").filter(t => t);
+
       let a = 0, b = 0, c = 0;
-      tokens.forEach(term => {
-        if (term.includes('x**2')) {
-          let val = term.replace('x**2', '');
-          if (val === '' || val === '+') val = '1';
-          if (val === '-') val = '-1';
-          a += parseFloat(val);
-        } else if (term.includes('x')) {
-          let val = term.replace('x', '');
-          if (val === '' || val === '+') val = '1';
-          if (val === '-') val = '-1';
-          b += parseFloat(val);
+
+      for (let t of terms) {
+        if (t.includes("x**2")) {
+          let coeff = t.replace("x**2", "") || "1";
+          if (coeff === "-") coeff = "-1";
+          a += Number(coeff);
+        } else if (t.includes("x")) {
+          let coeff = t.replace("x", "") || "1";
+          if (coeff === "-") coeff = "-1";
+          b += Number(coeff);
         } else {
-          c += parseFloat(term);
+          c += Number(t);
         }
-      });
+      }
       return { a, b, c };
     }
   </script>
